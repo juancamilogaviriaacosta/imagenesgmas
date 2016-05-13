@@ -23,8 +23,8 @@ public class Gmas {
         try {
             File f1 = new File("/home/juan/Escritorio/stacks-sedimentaria/pila-fd/MIN2.jpg");
             File f2 = new File("/home/juan/Escritorio/stacks-sedimentaria/pila-fd/MAX2.jpg");
-            BufferedImage i1 = ImageIO.read(f1.toURL());
-            BufferedImage i2 = ImageIO.read(f2.toURL());
+            BufferedImage i1 = ImageIO.read(f1.toURI().toURL());
+            BufferedImage i2 = ImageIO.read(f2.toURI().toURL());
             int[][] resp = convertTo2DUsingGetRGB(i1, i2);
         } catch (Exception e) {
             e.printStackTrace();
