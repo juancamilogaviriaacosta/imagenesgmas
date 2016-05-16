@@ -1,5 +1,8 @@
 package gmas;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.plugin.PlugIn;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -10,7 +13,7 @@ import javax.imageio.ImageIO;
  *
  * @author juan
  */
-public class Gmas {
+public class Gmas implements PlugIn {
 
     /**
      * @param args the command line arguments
@@ -21,7 +24,8 @@ public class Gmas {
             File f2 = new File("/home/juan/Escritorio/stacks-sedimentaria/pila-fd/MAX2.jpg");
             BufferedImage i1 = ImageIO.read(f1.toURI().toURL());
             BufferedImage i2 = ImageIO.read(f2.toURI().toURL());
-            int[][] resp = convertTo2DUsingGetRGB(i1, i2);
+            //convertTo2DUsingGetRGB(i1, i2);
+            new Gmas().run("");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,28 +98,16 @@ public class Gmas {
     }
 
     private static boolean esGris(Color color) throws IOException {
-        return stdev(color.getRed(), color.getGreen(), color.getBlue()) < 16;
+        Estadistica e = new Estadistica(color.getRed(), color.getGreen(), color.getBlue());
+        return e.getStdDev() < 16;
     }
 
-    public static double stdev(int ... list) {
-        double sum = 0.0;
-        double mean = 0.0;
-        double num = 0.0;
-        double numi = 0.0;
-        double deno = 0.0;
-        for (int i = 0; i < list.length; i++) {
-            sum += list[i];
-            mean = sum / list.length - 1;
-
-        }
-
-        for (int i = 0; i < list.length; i++) {
-            numi = Math.pow((list[i] - mean), 2);
-            num += numi;
-            deno = list.length - 1;
-        }
-
-        double stdevResult = Math.sqrt(num / deno);
-        return stdevResult;
+    @Override
+    public void run(String string) {
+        IJ.showMessage("aaaaaaaaaaaaaaa");
+//        ImagePlus imp = IJ.getImage();
+//        IJ.run(imp, "Invert", "");
+//        IJ.wait(1000);
+//        IJ.run(imp, "Invert", "");
     }
 }
