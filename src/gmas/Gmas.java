@@ -43,7 +43,7 @@ public class Gmas implements PlugIn {
                 Color c2 = new Color(i2.getRGB(i, j));
                 int p1 = (c1.getRed() + c1.getGreen() + c1.getBlue()) / 3;
                 int p2 = (c2.getRed() + c2.getGreen() + c2.getBlue()) / 3;
-                if (p2 - p1 > umbral && esGris(c2)/*!esDorado(i2.getRGB(i, j))*/) {
+                if (p2 - p1 < umbral && esGris(c2)/*!esDorado(i2.getRGB(i, j))*/) {
                     result[i][j] = i2.getRGB(i, j);
                 }
             }
