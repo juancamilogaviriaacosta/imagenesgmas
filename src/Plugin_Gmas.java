@@ -1,6 +1,7 @@
 import ij.*;
 import ij.gui.GenericDialog;
 import ij.plugin.*;
+import ij.plugin.filter.GaussianBlur;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -35,6 +36,8 @@ public class Plugin_Gmas implements PlugIn {
         zpMin.setMethod(ZProjector.MIN_METHOD);
         zpMin.doRGBProjection();
         ImagePlus pMin = zpMin.getProjection();
+        GaussianBlur gbMin = new GaussianBlur();
+        gbMin.blurGaussian(pMin.getProcessor(), 2);
         //pMin.show();
 
         ZProjector zpMax = new ZProjector(impMax);
@@ -43,6 +46,8 @@ public class Plugin_Gmas implements PlugIn {
         zpMax.setMethod(ZProjector.MAX_METHOD);
         zpMax.doRGBProjection();
         ImagePlus pMax = zpMax.getProjection();
+        GaussianBlur gbMax = new GaussianBlur();
+        gbMax.blurGaussian(pMax.getProcessor(), 2);
         //pMax.show();
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
