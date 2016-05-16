@@ -1,7 +1,6 @@
 import ij.*;
 import ij.gui.GenericDialog;
 import ij.plugin.*;
-import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -16,7 +15,7 @@ public class Plugin_Gmas implements PlugIn {
 
     @Override
     public void run(String string) {
-        
+
         GenericDialog gd = new GenericDialog("");
         gd.addStringField("Umbralizar", "30", 20);
         gd.addStringField("Tolerancia grises", "15", 20);
