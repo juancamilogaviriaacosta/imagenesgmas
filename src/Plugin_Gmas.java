@@ -1,10 +1,10 @@
+import gmas.Estadistica;
 import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.plugin.filter.*;
 import ij.plugin.*;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  *
@@ -12,29 +12,29 @@ import java.awt.image.BufferedImage;
  */
 public class Plugin_Gmas implements PlugIn {
     
-    //private ImagePlus projImage = null; 
+    private double[] data;
     
     @Override
     public void run(String string) {
         ImagePlus impMin = IJ.getImage();
+        ImagePlus impMax = IJ.getImage();
+        
         ZProjector zpMin = new ZProjector(impMin);
         zpMin.setStartSlice(11);
-        zpMin.setStartSlice(20);
+        zpMin.setStopSlice(20);
         zpMin.setMethod(ZProjector.MIN_METHOD);
         zpMin.doRGBProjection();
         ImagePlus pMin = zpMin.getProjection();
         //pMin.show();
-        
-        ImagePlus impMax = IJ.getImage();
+
         ZProjector zpMax = new ZProjector(impMax);
         zpMax.setStartSlice(11);
-        zpMax.setStartSlice(20);
+        zpMax.setStopSlice(20);
         zpMax.setMethod(ZProjector.MAX_METHOD);
         zpMax.doRGBProjection();
         ImagePlus pMax = zpMax.getProjection();
         //pMax.show();
 
-        
         int umbral = 25;
         BufferedImage umbralizada = umbralizarPorDelta(umbral, pMin.getBufferedImage(), pMax.getBufferedImage());
         ImagePlus iumbral = new ImagePlus(String.valueOf(umbral), umbralizada);
@@ -52,7 +52,7 @@ public class Plugin_Gmas implements PlugIn {
                 Color c2 = new Color(bImax.getRGB(i, j));
                 int p1 = (c1.getRed() + c1.getGreen() + c1.getBlue()) / 3;
                 int p2 = (c2.getRed() + c2.getGreen() + c2.getBlue()) / 3;
-                if (p2 - p1 < umbral /*&& esGris(c2)/*!esDorado(bImax.getRGB(i, j))*/) {
+                if (p2 - p1 > umbral && esGris(c2)/*!esDorado(bImax.getRGB(i, j))*/) {
                     result[i][j] = bImax.getRGB(i, j);
                 }
             }
@@ -67,4 +67,46 @@ public class Plugin_Gmas implements PlugIn {
         }
         return salida;
     }
+    
+    public boolean esGris(Color color) {
+        prepararEstadistica(color.getRed(), color.getGreen(), color.getBlue());
+        return getDesviacionEstandar() < 16;
+    }
+
+    public void prepararEstadistica(double ... data) {
+        this.data = data;
+    }
+
+    public double getMedia() {
+        double sum = 0.0;
+        for (double a : data) {
+            sum += a;
+        }
+        return sum / data.length;
+    }
+
+    public double getVarianza() {
+        double mean = getMedia();
+        double temp = 0;
+        for (double a : data) {
+            temp += (mean - a) * (mean - a);
+        }
+        return temp / data.length;
+    }
+
+    public double getDesviacionEstandar() {
+        return Math.sqrt(getVarianza());
+    }
+
+    public double getMediana() {
+        Arrays.sort(data);
+
+        if (data.length % 2 == 0) {
+            return (data[(data.length / 2) - 1] + data[data.length / 2]) / 2.0;
+        } else {
+            return data[data.length / 2];
+        }
+    }
+    
+    
 }
