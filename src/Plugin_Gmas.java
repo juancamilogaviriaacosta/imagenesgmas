@@ -2,6 +2,8 @@ import ij.*;
 import ij.gui.GenericDialog;
 import ij.plugin.*;
 import ij.plugin.filter.GaussianBlur;
+import ij.plugin.filter.RankFilters;
+import ij.process.MedianCut;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -18,14 +20,16 @@ public class Plugin_Gmas implements PlugIn {
     public void run(String string) {
 
         GenericDialog gd = new GenericDialog("");
-        gd.addStringField("Umbralizar", "30", 20);
-        gd.addStringField("Tolerancia grises", "15", 20);
+        gd.addStringField("Umbral de cambio", "30", 2);
+        gd.addStringField("Maxima diferencia entre canales", "15", 2);
+        gd.addStringField("Tamaño del filtro", "10", 2);
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
         }
         int umbral = Integer.valueOf(gd.getNextString());
         int tolerancia = Integer.valueOf(gd.getNextString());
+        int filtro = Integer.valueOf(gd.getNextString());
 
         ImagePlus impMin = IJ.getImage();
         ImagePlus impMax = IJ.getImage();
@@ -52,7 +56,20 @@ public class Plugin_Gmas implements PlugIn {
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
         ImagePlus iumbral = new ImagePlus(String.valueOf(umbral), umbralizada);
+        
+        WindowManager.setTempCurrentImage(iumbral);
+        Executer exBinary = new Executer("Make Binary");
+        exBinary.run();
+        
+        WindowManager.setTempCurrentImage(iumbral);
+        Executer exFill = new Executer("Fill Holes");
+        exFill.run();
+        
+        RankFilters rf = new RankFilters();
+        rf.rank(iumbral.getProcessor(), filtro, RankFilters.MEDIAN, 0, 0);
+        
         iumbral.show();
+        
     }
 
     private BufferedImage umbralizarPorDelta(int umbral, int tolerancia, BufferedImage bImin, BufferedImage bImax) {
