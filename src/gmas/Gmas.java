@@ -20,8 +20,8 @@ public class Gmas implements PlugIn {
      */
     public static void main(String[] args) {
         try {
-            File f1 = new File("/home/juan/Escritorio/stacks-sedimentaria/pila-fd/MIN2.jpg");
-            File f2 = new File("/home/juan/Escritorio/stacks-sedimentaria/pila-fd/MAX2.jpg");
+            File f1 = new File("/home/juan/Escritorio/stacks-sedimentaria/pila-br/MIN2.jpg");
+            File f2 = new File("/home/juan/Escritorio/stacks-sedimentaria/pila-br/MAX2.jpg");
             BufferedImage i1 = ImageIO.read(f1.toURI().toURL());
             BufferedImage i2 = ImageIO.read(f2.toURI().toURL());
             convertTo2DUsingGetRGB(i1, i2);
@@ -43,7 +43,7 @@ public class Gmas implements PlugIn {
                 Color c2 = new Color(i2.getRGB(i, j));
                 int p1 = (c1.getRed() + c1.getGreen() + c1.getBlue()) / 3;
                 int p2 = (c2.getRed() + c2.getGreen() + c2.getBlue()) / 3;
-                if (p2 - p1 > umbral /*&& esGris(c2)/*!esDorado(i2.getRGB(i, j))*/) {
+                if (p2 - p1 > umbral && esGris(c2)/*!esDorado(i2.getRGB(i, j))*/) {
                     result[i][j] = i2.getRGB(i, j);
                 }
             }

@@ -3,7 +3,6 @@ import ij.gui.GenericDialog;
 import ij.plugin.*;
 import ij.plugin.filter.GaussianBlur;
 import ij.plugin.filter.RankFilters;
-import ij.process.MedianCut;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -56,6 +55,26 @@ public class Plugin_Gmas implements PlugIn {
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
         ImagePlus iumbral = new ImagePlus(String.valueOf(umbral), umbralizada);
+//        ImagePlus binaria = iumbral.duplicate();
+//        binaria.show();
+        
+        ImageCalculator ic = new ImageCalculator();
+        ic.run("and", pMax, iumbral);
+        /*
+        and entre umbralizada y maximo
+        filtro sombrero mexicano 5
+        binrizacion
+        relleno de huecos
+        filtro mediano de 10
+        etiquetado
+        filtro de tamaños
+        conteo de objetos por nivel de gris
+        conteo de porosidad
+        */
+        
+        WindowManager.setTempCurrentImage(iumbral);
+        Executer exMexican = new Executer("Mexican Hat Filter");
+        exMexican.run();
         
         WindowManager.setTempCurrentImage(iumbral);
         Executer exBinary = new Executer("Make Binary");
