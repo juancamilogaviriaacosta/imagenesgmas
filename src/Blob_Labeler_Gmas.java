@@ -1,34 +1,23 @@
-import java.awt.AWTEvent;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Properties;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
-import ij.Prefs;
-import ij.gui.DialogListener;
 import ij.gui.GenericDialog;
 import ij.gui.Overlay;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 import ij.gui.Wand;
-import ij.plugin.filter.Convolver;
-import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilter;
-import ij.plugin.filter.PlugInFilterRunner;
 import ij.plugin.frame.RoiManager;
-import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
@@ -64,7 +53,7 @@ import ij.process.ShortProcessor;
 *      License along with this library; if not, write to the Free Software
 *      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-public class Blob_Labeler  implements PlugInFilter {
+public class Blob_Labeler_Gmas  implements PlugInFilter {
 
 
 	final int flags=DOES_8G+ DOES_8C+NO_CHANGES+NO_UNDO + DOES_STACKS +PARALLELIZE_STACKS;
@@ -91,25 +80,25 @@ public class Blob_Labeler  implements PlugInFilter {
 	 /*
 	  * @param args - args[0] should point to the folder where the plugins are installed 
 	  */
-	public static void main(String[] args) {
-			
-			try {
-	    		
-	    		File f=new File(args[0]);
-	    		
-	    		if (f.exists() && f.isDirectory() ) {
-	    			System.setProperty("plugins.dir", args[0]);
-	    			new ImageJ();
-	    		} else {
-	    			throw new IllegalArgumentException();
-	    		}
-	    	}
-	    	catch (Exception ex) {
-	    		IJ.log("plugins.dir misspecified\n");
-	    		ex.printStackTrace();
-	    	}
-		
-	}
+//	public static void main(String[] args) {
+//			
+//			try {
+//	    		
+//	    		File f=new File(args[0]);
+//	    		
+//	    		if (f.exists() && f.isDirectory() ) {
+//	    			System.setProperty("plugins.dir", args[0]);
+//	    			new ImageJ();
+//	    		} else {
+//	    			throw new IllegalArgumentException();
+//	    		}
+//	    	}
+//	    	catch (Exception ex) {
+//	    		IJ.log("plugins.dir misspecified\n");
+//	    		ex.printStackTrace();
+//	    	}
+//		
+//	}
 
 	@Override
 	public int setup(String arg, ImagePlus imp) {		
@@ -714,14 +703,19 @@ public class Blob_Labeler  implements PlugInFilter {
 		gd.addCheckbox("8-connected", neighb8);
 		gd.addCheckbox("edge", edge);
 		gd.addCheckbox("vectorize", segment);
-		gd.showDialog();
+//		gd.showDialog();
 		if (gd.wasCanceled())
 			return false;
 		
-		bgcol= (int)(gd.getNextNumber());
-		neighb8 = gd.getNextBoolean();	
-		edge = gd.getNextBoolean();	
-		segment = gd.getNextBoolean();	
+//		bgcol= (int)(gd.getNextNumber());
+//		neighb8 = gd.getNextBoolean();	
+//		edge = gd.getNextBoolean();	
+//		segment = gd.getNextBoolean();	
+
+		bgcol= 0;
+		neighb8 = true;	
+		edge = false;	
+		segment = false;	
 		
 		return true;
 	}

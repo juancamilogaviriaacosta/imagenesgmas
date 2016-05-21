@@ -55,8 +55,6 @@ public class Plugin_Gmas implements PlugIn {
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
         ImagePlus iumbral = new ImagePlus(String.valueOf(umbral), umbralizada);
-//        ImagePlus binaria = iumbral.duplicate();
-//        binaria.show();
         
         ImageCalculator ic = new ImageCalculator();
         ic.run("and", pMax, iumbral);
@@ -73,22 +71,21 @@ public class Plugin_Gmas implements PlugIn {
         */
         
         WindowManager.setTempCurrentImage(iumbral);
-        Executer exMexican = new Executer("Mexican Hat Filter");
-        exMexican.run();
         
-        WindowManager.setTempCurrentImage(iumbral);
-        Executer exBinary = new Executer("Make Binary");
-        exBinary.run();
+        IJ.run("Mexican Hat Filter Gmas");
         
-        WindowManager.setTempCurrentImage(iumbral);
-        Executer exFill = new Executer("Fill Holes");
-        exFill.run();
+        IJ.run("Make Binary");
         
         RankFilters rf = new RankFilters();
         rf.rank(iumbral.getProcessor(), filtro, RankFilters.MEDIAN, 0, 0);
         
-        iumbral.show();
+        IJ.run("Fill Holes");
         
+        IJ.run("Erode");
+        
+        IJ.run("Blob Labeler Gmas");
+
+        //iumbral.show();
     }
 
     private BufferedImage umbralizarPorDelta(int umbral, int tolerancia, BufferedImage bImin, BufferedImage bImax) {
