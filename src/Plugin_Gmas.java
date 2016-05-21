@@ -1,3 +1,4 @@
+
 import ij.*;
 import ij.gui.GenericDialog;
 import ij.plugin.*;
@@ -6,6 +7,8 @@ import ij.plugin.filter.RankFilters;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -22,6 +25,7 @@ public class Plugin_Gmas implements PlugIn {
         gd.addStringField("Umbral de cambio", "30", 2);
         gd.addStringField("Maxima diferencia entre canales", "15", 2);
         gd.addStringField("Tamaño del filtro", "10", 2);
+        gd.addStringField("Dimensiones minimas de los objetos", "5000", 2);
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
@@ -29,6 +33,7 @@ public class Plugin_Gmas implements PlugIn {
         int umbral = Integer.valueOf(gd.getNextString());
         int tolerancia = Integer.valueOf(gd.getNextString());
         int filtro = Integer.valueOf(gd.getNextString());
+        int dimensionMinima = Integer.valueOf(gd.getNextString());
 
         ImagePlus impMin = IJ.getImage();
         ImagePlus impMax = IJ.getImage();
@@ -55,7 +60,7 @@ public class Plugin_Gmas implements PlugIn {
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
         ImagePlus iumbral = new ImagePlus(String.valueOf(umbral), umbralizada);
-        
+
         ImageCalculator ic = new ImageCalculator();
         ic.run("and", pMax, iumbral);
         /*
@@ -68,24 +73,28 @@ public class Plugin_Gmas implements PlugIn {
         filtro de tamaños
         conteo de objetos por nivel de gris
         conteo de porosidad
-        */
-        
+         */
+
         WindowManager.setTempCurrentImage(iumbral);
-        
+
         IJ.run("Mexican Hat Filter Gmas");
-        
+
         IJ.run("Make Binary");
-        
+
         RankFilters rf = new RankFilters();
         rf.rank(iumbral.getProcessor(), filtro, RankFilters.MEDIAN, 0, 0);
-        
+
         IJ.run("Fill Holes");
-        
+
         IJ.run("Erode");
-        
+
         IJ.run("Blob Labeler Gmas");
 
-        //iumbral.show();
+        ImagePlus etiquetado = IJ.getImage();
+
+        ImagePlus sinRuido = eliminarRuido(etiquetado, dimensionMinima);
+
+        sinRuido.show();
     }
 
     private BufferedImage umbralizarPorDelta(int umbral, int tolerancia, BufferedImage bImin, BufferedImage bImax) {
@@ -153,5 +162,35 @@ public class Plugin_Gmas implements PlugIn {
         } else {
             return data[data.length / 2];
         }
+    }
+
+    private ImagePlus eliminarRuido(ImagePlus imagen, int dimensionMinima) {
+        BufferedImage bImin = imagen.getBufferedImage();
+        int width = bImin.getWidth();
+        int height = bImin.getHeight();
+        Map<Integer, Integer> mapaConteo = new HashMap();
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int rgb = bImin.getRGB(i, j);
+                if (!mapaConteo.containsKey(rgb)) {
+                    mapaConteo.put(rgb, 0);
+                }
+                mapaConteo.put(rgb, mapaConteo.get(rgb) + 1);
+            }
+        }
+
+        BufferedImage salida = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int rgb = bImin.getRGB(i, j);
+                if (mapaConteo.get(rgb) > dimensionMinima) {
+                    salida.setRGB(i, j, rgb);
+                }
+            }
+        }
+        ImagePlus respuesta = new ImagePlus("sinRuido", salida);
+        WindowManager.setTempCurrentImage(respuesta);
+        return respuesta;
     }
 }
