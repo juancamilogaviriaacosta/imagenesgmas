@@ -108,10 +108,13 @@ public class Plugin_Gmas implements PlugIn {
         ImagePlus sobreponer = sobreponer(sinRuido, copiaMax);
 
         porosidad = getPorosidad(pPlanaMax, copiaMax);
-        System.out.println("porosidad: " + porosidad);
-        System.out.println("numeroObjetos: " + numeroObjetos);
 
         sobreponer.show();
+
+        GenericDialog gdr = new GenericDialog("Resultados");
+        gdr.addMessage("Se encontraron " + numeroObjetos + " cuarzos");
+        gdr.addMessage("Existe una porosidad de " + String.format("%.2f", porosidad) + "%");
+        gdr.showDialog();
     }
 
     private BufferedImage umbralizarPorDelta(int umbral, int tolerancia, BufferedImage bImin, BufferedImage bImax) {
@@ -210,7 +213,7 @@ public class Plugin_Gmas implements PlugIn {
                 }
             }
         }
-        
+
         numeroObjetos = setObjetos.size();
         map.setColorModel(Blob_Labeler_Gmas.makeLut(0));
         WindowManager.setTempCurrentImage(respuestaShort);
@@ -242,11 +245,20 @@ public class Plugin_Gmas implements PlugIn {
             for (int j = 0; j < height; j++) {
                 Color cPla = new Color(pPlanaMaxBi.getRGB(i, j));
                 Color cPer = new Color(pMaxBi.getRGB(i, j));
-                if (cPla.getRed() == 255 && cPla.getGreen() == 255 && cPla.getBlue() == 255 && cPer.getRed() == 0 && cPer.getGreen() == 0 && cPer.getBlue() == 0) {
+                int superior = 255;
+                int inferior = 0;
+                int holgura = 20;
+                if (superior - holgura <= cPla.getRed() && cPla.getRed() <= superior
+                        && superior - holgura <= cPla.getGreen() && cPla.getGreen() <= superior
+                        && superior - holgura <= cPla.getBlue() && cPla.getBlue() <= superior
+                        && inferior <= cPer.getRed() && cPer.getRed() <= inferior + holgura
+                        && inferior <= cPer.getGreen() && cPer.getGreen() <= inferior + holgura
+                        && inferior <= cPer.getBlue() && cPer.getBlue() <= inferior + holgura) {
                     respuesta++;
                 }
             }
         }
+        System.out.println("RESPUESTAAAAAAA: " + respuesta);
         return (respuesta / (width * height) * 100);
     }
 }
