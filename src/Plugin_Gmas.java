@@ -1,5 +1,8 @@
 import ij.*;
 import ij.gui.GenericDialog;
+import ij.gui.ImageRoi;
+import ij.gui.Overlay;
+import ij.gui.Roi;
 import ij.plugin.*;
 import ij.plugin.filter.GaussianBlur;
 import ij.plugin.filter.RankFilters;
@@ -58,6 +61,7 @@ public class Plugin_Gmas implements PlugIn {
         ImagePlus pMax = zpMax.getProjection();
         GaussianBlur gbMax = new GaussianBlur();
         gbMax.blurGaussian(pMax.getProcessor(), 2);
+        ImagePlus copiaMax = pMax.duplicate();
         //pMax.show();
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
@@ -65,17 +69,6 @@ public class Plugin_Gmas implements PlugIn {
 
         ImageCalculator ic = new ImageCalculator();
         ic.run("and", pMax, iumbral);
-        /*
-         and entre umbralizada y maximo
-         filtro sombrero mexicano 5
-         binrizacion
-         relleno de huecos
-         filtro mediano de 10
-         etiquetado
-         filtro de tamaños
-         conteo de objetos por nivel de gris
-         conteo de porosidad
-         */
 
         WindowManager.setTempCurrentImage(iumbral);
 
@@ -96,7 +89,9 @@ public class Plugin_Gmas implements PlugIn {
 
         ImagePlus sinRuido = eliminarRuido(etiquetado, dimensionMinima);
 
-        sinRuido.show();
+        ImagePlus sobreponer = sobreponer(sinRuido, copiaMax);
+
+        sobreponer.show();
     }
 
     private BufferedImage umbralizarPorDelta(int umbral, int tolerancia, BufferedImage bImin, BufferedImage bImax) {
@@ -227,5 +222,19 @@ public class Plugin_Gmas implements PlugIn {
         map.setColorModel(Blob_Labeler_Gmas.makeLut(0));
         WindowManager.setTempCurrentImage(respuestaShort);
         return respuestaShort;
+    }
+
+    private ImagePlus sobreponer(ImagePlus abajo, ImagePlus arriba) {
+        Overlay overlayList = abajo.getOverlay();
+        if (overlayList == null) {
+            overlayList = new Overlay();
+        }
+        Roi roi = new ImageRoi(0, 0, arriba.getProcessor());
+        ((ImageRoi) roi).setOpacity(0.5);
+        overlayList.add(roi);
+        abajo.setOverlay(overlayList);
+        Undo.setup(Undo.OVERLAY_ADDITION, abajo);
+        WindowManager.setTempCurrentImage(abajo);
+        return abajo;
     }
 }
