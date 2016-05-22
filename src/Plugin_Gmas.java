@@ -65,19 +65,18 @@ public class Plugin_Gmas implements PlugIn {
         zpMax.setMethod(ZProjector.MAX_METHOD);
         zpMax.doRGBProjection();
         ImagePlus pMax = zpMax.getProjection();
+        ImagePlus maxOriginal = pMax.duplicate();
         GaussianBlur gbMax = new GaussianBlur();
         gbMax.blurGaussian(pMax.getProcessor(), 2);
         ImagePlus copiaMax = pMax.duplicate();
         //pMax.show();
 
         ZProjector zpPlanaMax = new ZProjector(impPlanaMax);
-        zpPlanaMax.setStartSlice(11);
-        zpPlanaMax.setStopSlice(20);
+        zpPlanaMax.setStartSlice(0);
+        zpPlanaMax.setStopSlice(10);
         zpPlanaMax.setMethod(ZProjector.MAX_METHOD);
         zpPlanaMax.doRGBProjection();
         ImagePlus pPlanaMax = zpPlanaMax.getProjection();
-        GaussianBlur gbPlanaMax = new GaussianBlur();
-        gbPlanaMax.blurGaussian(pPlanaMax.getProcessor(), 2);
         //pPlanaMax.show();
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
@@ -107,7 +106,7 @@ public class Plugin_Gmas implements PlugIn {
 
         ImagePlus sobreponer = sobreponer(sinRuido, copiaMax);
 
-        porosidad = getPorosidad(pPlanaMax, copiaMax);
+        porosidad = getPorosidad(pPlanaMax, maxOriginal);
 
         sobreponer.show();
 
@@ -128,7 +127,7 @@ public class Plugin_Gmas implements PlugIn {
                 Color c2 = new Color(bImax.getRGB(i, j));
                 int p1 = (c1.getRed() + c1.getGreen() + c1.getBlue()) / 3;
                 int p2 = (c2.getRed() + c2.getGreen() + c2.getBlue()) / 3;
-                if (p2 - p1 > umbral && esGris(c2, tolerancia)/*!esDorado(bImax.getRGB(i, j))*/) {
+                if (p2 - p1 > umbral && esGris(c2, tolerancia)) {
                     result[i][j] = bImax.getRGB(i, j);
                 }
             }
@@ -239,26 +238,22 @@ public class Plugin_Gmas implements PlugIn {
         BufferedImage pMaxBi = pMax.getBufferedImage();
         int width = pPlanaMax.getWidth();
         int height = pPlanaMax.getHeight();
-        double respuesta = 0;
+        double respuesta = 1000;
+        int superior = 255;
+        int inferior = 0;
+        int holgura = 5;
 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 Color cPla = new Color(pPlanaMaxBi.getRGB(i, j));
                 Color cPer = new Color(pMaxBi.getRGB(i, j));
-                int superior = 255;
-                int inferior = 0;
-                int holgura = 20;
-                if (superior - holgura <= cPla.getRed() && cPla.getRed() <= superior
-                        && superior - holgura <= cPla.getGreen() && cPla.getGreen() <= superior
-                        && superior - holgura <= cPla.getBlue() && cPla.getBlue() <= superior
-                        && inferior <= cPer.getRed() && cPer.getRed() <= inferior + holgura
-                        && inferior <= cPer.getGreen() && cPer.getGreen() <= inferior + holgura
-                        && inferior <= cPer.getBlue() && cPer.getBlue() <= inferior + holgura) {
+                int pla = (cPla.getRed() + cPla.getGreen() + cPla.getBlue()) / 3;
+                int per = (cPer.getRed() + cPer.getGreen() + cPer.getBlue()) / 3;
+                if (superior - holgura <= pla && pla <= superior && inferior <= per && per <= inferior + holgura) {
                     respuesta++;
                 }
             }
         }
-        System.out.println("RESPUESTAAAAAAA: " + respuesta);
         return (respuesta / (width * height) * 100);
     }
 }
