@@ -12,7 +12,9 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -21,10 +23,13 @@ import java.util.Map;
 public class Plugin_Gmas implements PlugIn {
 
     private double[] data;
+    private double porosidad;
+    private int numeroObjetos;
 
     @Override
     public void run(String string) {
-
+        porosidad = 0;
+        numeroObjetos = 0;
         int numColumnas = 10;
         GenericDialog gd = new GenericDialog("");
         gd.addStringField("Umbral de cambio", "30", numColumnas);
@@ -42,6 +47,7 @@ public class Plugin_Gmas implements PlugIn {
 
         ImagePlus impMin = IJ.getImage();
         ImagePlus impMax = IJ.getImage();
+        ImagePlus impPlanaMax = IJ.getImage();
 
         ZProjector zpMin = new ZProjector(impMin);
         zpMin.setStartSlice(11);
@@ -63,6 +69,16 @@ public class Plugin_Gmas implements PlugIn {
         gbMax.blurGaussian(pMax.getProcessor(), 2);
         ImagePlus copiaMax = pMax.duplicate();
         //pMax.show();
+
+        ZProjector zpPlanaMax = new ZProjector(impPlanaMax);
+        zpPlanaMax.setStartSlice(11);
+        zpPlanaMax.setStopSlice(20);
+        zpPlanaMax.setMethod(ZProjector.MAX_METHOD);
+        zpPlanaMax.doRGBProjection();
+        ImagePlus pPlanaMax = zpPlanaMax.getProjection();
+        GaussianBlur gbPlanaMax = new GaussianBlur();
+        gbPlanaMax.blurGaussian(pPlanaMax.getProcessor(), 2);
+        //pPlanaMax.show();
 
         BufferedImage umbralizada = umbralizarPorDelta(umbral, tolerancia, pMin.getBufferedImage(), pMax.getBufferedImage());
         ImagePlus iumbral = new ImagePlus(String.valueOf(umbral), umbralizada);
@@ -90,6 +106,10 @@ public class Plugin_Gmas implements PlugIn {
         ImagePlus sinRuido = eliminarRuido(etiquetado, dimensionMinima);
 
         ImagePlus sobreponer = sobreponer(sinRuido, copiaMax);
+
+        porosidad = getPorosidad(pPlanaMax, copiaMax);
+        System.out.println("porosidad: " + porosidad);
+        System.out.println("numeroObjetos: " + numeroObjetos);
 
         sobreponer.show();
     }
@@ -161,36 +181,6 @@ public class Plugin_Gmas implements PlugIn {
         }
     }
 
-    private ImagePlus eliminarRuido422(ImagePlus imagen, int dimensionMinima) {
-        BufferedImage bImin = imagen.getBufferedImage();
-        int width = bImin.getWidth();
-        int height = bImin.getHeight();
-        Map<Integer, Integer> mapaConteo = new HashMap();
-
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                int rgb = bImin.getRGB(i, j);
-                if (!mapaConteo.containsKey(rgb)) {
-                    mapaConteo.put(rgb, 0);
-                }
-                mapaConteo.put(rgb, mapaConteo.get(rgb) + 1);
-            }
-        }
-
-        BufferedImage salida = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                int rgb = bImin.getRGB(i, j);
-                if (mapaConteo.get(rgb) > dimensionMinima) {
-                    salida.setRGB(i, j, rgb);
-                }
-            }
-        }
-        ImagePlus respuesta = new ImagePlus("sinRuido", salida);
-        WindowManager.setTempCurrentImage(respuesta);
-        return respuesta;
-    }
-
     private ImagePlus eliminarRuido(ImagePlus imagen, int dimensionMinima) {
         ImageProcessor bImin = imagen.getProcessor();
         int width = bImin.getWidth();
@@ -207,6 +197,7 @@ public class Plugin_Gmas implements PlugIn {
             }
         }
 
+        Set<Integer> setObjetos = new HashSet();
         ShortProcessor map = new ShortProcessor(width, height);
         ImagePlus respuestaShort = new ImagePlus("sinRuido", map);
         ImageProcessor pr = respuestaShort.getProcessor();
@@ -215,10 +206,12 @@ public class Plugin_Gmas implements PlugIn {
                 int rgb = bImin.getPixel(i, j);
                 if (mapaConteo.get(rgb) > dimensionMinima) {
                     pr.set(i, j, rgb);
+                    setObjetos.add(rgb);
                 }
             }
         }
-
+        
+        numeroObjetos = setObjetos.size();
         map.setColorModel(Blob_Labeler_Gmas.makeLut(0));
         WindowManager.setTempCurrentImage(respuestaShort);
         return respuestaShort;
@@ -236,5 +229,24 @@ public class Plugin_Gmas implements PlugIn {
         Undo.setup(Undo.OVERLAY_ADDITION, abajo);
         WindowManager.setTempCurrentImage(abajo);
         return abajo;
+    }
+
+    private double getPorosidad(ImagePlus pPlanaMax, ImagePlus pMax) {
+        BufferedImage pPlanaMaxBi = pPlanaMax.getBufferedImage();
+        BufferedImage pMaxBi = pMax.getBufferedImage();
+        int width = pPlanaMax.getWidth();
+        int height = pPlanaMax.getHeight();
+        double respuesta = 0;
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                Color cPla = new Color(pPlanaMaxBi.getRGB(i, j));
+                Color cPer = new Color(pMaxBi.getRGB(i, j));
+                if (cPla.getRed() == 255 && cPla.getGreen() == 255 && cPla.getBlue() == 255 && cPer.getRed() == 0 && cPer.getGreen() == 0 && cPer.getBlue() == 0) {
+                    respuesta++;
+                }
+            }
+        }
+        return (respuesta / (width * height) * 100);
     }
 }
