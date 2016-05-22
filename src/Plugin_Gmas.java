@@ -1,9 +1,10 @@
-
 import ij.*;
 import ij.gui.GenericDialog;
 import ij.plugin.*;
 import ij.plugin.filter.GaussianBlur;
 import ij.plugin.filter.RankFilters;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -21,11 +22,12 @@ public class Plugin_Gmas implements PlugIn {
     @Override
     public void run(String string) {
 
+        int numColumnas = 10;
         GenericDialog gd = new GenericDialog("");
-        gd.addStringField("Umbral de cambio", "30", 2);
-        gd.addStringField("Maxima diferencia entre canales", "15", 2);
-        gd.addStringField("Tamaño del filtro", "10", 2);
-        gd.addStringField("Dimensiones minimas de los objetos", "5000", 2);
+        gd.addStringField("Umbral de cambio", "30", numColumnas);
+        gd.addStringField("Maxima diferencia entre canales", "15", numColumnas);
+        gd.addStringField("Tamaño del filtro", "10", numColumnas);
+        gd.addStringField("Dimensiones minimas de los objetos", "5000", numColumnas);
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
@@ -64,15 +66,15 @@ public class Plugin_Gmas implements PlugIn {
         ImageCalculator ic = new ImageCalculator();
         ic.run("and", pMax, iumbral);
         /*
-        and entre umbralizada y maximo
-        filtro sombrero mexicano 5
-        binrizacion
-        relleno de huecos
-        filtro mediano de 10
-        etiquetado
-        filtro de tamaños
-        conteo de objetos por nivel de gris
-        conteo de porosidad
+         and entre umbralizada y maximo
+         filtro sombrero mexicano 5
+         binrizacion
+         relleno de huecos
+         filtro mediano de 10
+         etiquetado
+         filtro de tamaños
+         conteo de objetos por nivel de gris
+         conteo de porosidad
          */
 
         WindowManager.setTempCurrentImage(iumbral);
@@ -164,7 +166,7 @@ public class Plugin_Gmas implements PlugIn {
         }
     }
 
-    private ImagePlus eliminarRuido(ImagePlus imagen, int dimensionMinima) {
+    private ImagePlus eliminarRuido422(ImagePlus imagen, int dimensionMinima) {
         BufferedImage bImin = imagen.getBufferedImage();
         int width = bImin.getWidth();
         int height = bImin.getHeight();
@@ -192,5 +194,38 @@ public class Plugin_Gmas implements PlugIn {
         ImagePlus respuesta = new ImagePlus("sinRuido", salida);
         WindowManager.setTempCurrentImage(respuesta);
         return respuesta;
+    }
+
+    private ImagePlus eliminarRuido(ImagePlus imagen, int dimensionMinima) {
+        ImageProcessor bImin = imagen.getProcessor();
+        int width = bImin.getWidth();
+        int height = bImin.getHeight();
+        Map<Integer, Integer> mapaConteo = new HashMap();
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int rgb = bImin.getPixel(i, j);
+                if (!mapaConteo.containsKey(rgb)) {
+                    mapaConteo.put(rgb, 0);
+                }
+                mapaConteo.put(rgb, mapaConteo.get(rgb) + 1);
+            }
+        }
+
+        ShortProcessor map = new ShortProcessor(width, height);
+        ImagePlus respuestaShort = new ImagePlus("sinRuido", map);
+        ImageProcessor pr = respuestaShort.getProcessor();
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int rgb = bImin.getPixel(i, j);
+                if (mapaConteo.get(rgb) > dimensionMinima) {
+                    pr.set(i, j, rgb);
+                }
+            }
+        }
+
+        map.setColorModel(Blob_Labeler_Gmas.makeLut(0));
+        WindowManager.setTempCurrentImage(respuestaShort);
+        return respuestaShort;
     }
 }

@@ -1,4 +1,3 @@
-
 import java.awt.Polygon;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
@@ -22,36 +21,36 @@ import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
 /*
-* @version 		2.0	19 March 2013
-* 					vectorization
-* 					migration to PluginFilter 
-* 					support of 8 connected neighborhood 
-* 				1.0	24 Nov 2012
-*   				support of 4 connected neighborhood 
-* 
-* @author Dimiter Prodanov
-* 		  IMEC
-*
-*
-* @contents
-* This pluign computes labels blobs. The implementation is based on
-*  Neil Brown and  Judy Robertson 
-*  http://homepages.inf.ed.ac.uk/rbf/HIPR2/labeldemo.htm
-* 
-* 
-* @license This library is free software; you can redistribute it and/or
-*      modify it under the terms of the GNU Lesser General Public
-*      License as published by the Free Software Foundation; either
-*      version 2.1 of the License, or (at your option) any later version.
-*
-*      This library is distributed in the hope that it will be useful,
-*      but WITHOUT ANY WARRANTY; without even the implied warranty of
-*      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*       Lesser General Public License for more details.
-*
-*      You should have received a copy of the GNU Lesser General Public
-*      License along with this library; if not, write to the Free Software
-*      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * @version 		2.0	19 March 2013
+ * 					vectorization
+ * 					migration to PluginFilter 
+ * 					support of 8 connected neighborhood 
+ * 				1.0	24 Nov 2012
+ *   				support of 4 connected neighborhood 
+ * 
+ * @author Dimiter Prodanov
+ * 		  IMEC
+ *
+ *
+ * @contents
+ * This pluign computes labels blobs. The implementation is based on
+ *  Neil Brown and  Judy Robertson 
+ *  http://homepages.inf.ed.ac.uk/rbf/HIPR2/labeldemo.htm
+ * 
+ * 
+ * @license This library is free software; you can redistribute it and/or
+ *      modify it under the terms of the GNU Lesser General Public
+ *      License as published by the Free Software Foundation; either
+ *      version 2.1 of the License, or (at your option) any later version.
+ *
+ *      This library is distributed in the hope that it will be useful,
+ *      but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *       Lesser General Public License for more details.
+ *
+ *      You should have received a copy of the GNU Lesser General Public
+ *      License along with this library; if not, write to the Free Software
+ *      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 public class Blob_Labeler_Gmas implements PlugInFilter {
 
@@ -77,7 +76,7 @@ public class Blob_Labeler_Gmas implements PlugInFilter {
     private static boolean neighb8 = false;
 
     /*
-	  * @param args - args[0] should point to the folder where the plugins are installed 
+     * @param args - args[0] should point to the folder where the plugins are installed 
      */
 //	public static void main(String[] args) {
 //			
@@ -154,7 +153,7 @@ public class Blob_Labeler_Gmas implements PlugInFilter {
         outimg = new ImagePlus(title + " " + numberOfLabels, map);
 
         /*
-		 *  segmenting the polygons
+         *  segmenting the polygons
          */
         //outimg.show();
         WindowManager.setTempCurrentImage(outimg);
@@ -237,9 +236,9 @@ public class Blob_Labeler_Gmas implements PlugInFilter {
             first = true;
 
             /*	for (int[] k: value) {
-				System.out.print("("+k[0]+" "+ k[1]+"),");
-			}
-			System.out.print(" <<\n");
+             System.out.print("("+k[0]+" "+ k[1]+"),");
+             }
+             System.out.print(" <<\n");
              */
         }
 
@@ -302,7 +301,7 @@ public class Blob_Labeler_Gmas implements PlugInFilter {
     /**
      * @return
      */
-    private IndexColorModel makeLut(int ubgcol) {
+    public static IndexColorModel makeLut(int ubgcol) {
         boolean acceptColor = false;
         byte[] reds = new byte[256];
         byte[] greens = new byte[256];
@@ -432,9 +431,9 @@ public class Blob_Labeler_Gmas implements PlugInFilter {
         }
 
         /*now labels will look something like 1=1 2=2 3=2 4=2 5=5.. 76=5 77=5
-			      this needs to be condensed down again, so that there is no wasted
-			      space eg in the above, the labels 3 and 4 are not used instead it jumps
-			      to 5.
+         this needs to be condensed down again, so that there is no wasted
+         space eg in the above, the labels 3 and 4 are not used instead it jumps
+         to 5.
          */
         if (labelColour > 0) {
             int condensed[] = new int[labelColour]; // can't be more than nextlabel labels
@@ -447,8 +446,8 @@ public class Blob_Labeler_Gmas implements PlugInFilter {
             }
 
             /*for( int i= condensed.length -1; i > 0; i-- ){
-			System.out.println(" l " + i+ " "+condensed[ i ]);
-		}*/
+             System.out.println(" l " + i+ " "+condensed[ i ]);
+             }*/
             numberOfLabels = count - 1;
 
             // now run back through our preliminary results, replacing the raw label
@@ -561,9 +560,9 @@ public class Blob_Labeler_Gmas implements PlugInFilter {
         }
 
         /*now labels will look something like 1=1 2=2 3=2 4=2 5=5.. 76=5 77=5
-			      this needs to be condensed down again, so that there is no wasted
-			      space eg in the above, the labels 3 and 4 are not used instead it jumps
-			      to 5.
+         this needs to be condensed down again, so that there is no wasted
+         space eg in the above, the labels 3 and 4 are not used instead it jumps
+         to 5.
          */
         if (labelColour > 0) {
             int condensed[] = new int[labelColour]; // can't be more than nextlabel labels
