@@ -238,7 +238,7 @@ public class Plugin_Gmas implements PlugIn {
         BufferedImage pMaxBi = pMax.getBufferedImage();
         int width = pPlanaMax.getWidth();
         int height = pPlanaMax.getHeight();
-        double respuesta = 1000;
+        double respuesta = 0;
         int superior = 255;
         int inferior = 0;
         int holgura = 5;
